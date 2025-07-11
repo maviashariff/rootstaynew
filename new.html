@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RootsStay - Authentic Rural Tourism Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .hero-background {
+        background-image: url("home.png"); /* Placeholder image */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      /* Initial transparent header */
+      .header-transparent {
+        background-color: transparent;
+        transition: background-color 0.3s ease-in-out;
+      }
+
+      /* Header on scroll */
+      .header-solid {
+        background-color: rgba(
+          22,
+          101,
+          52,
+          0.95
+        ); /* A slightly darker, semi-transparent green */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .hero-overlay {
+        background-color: rgba(0, 0, 0, 0.5); /* Lighter overlay */
+        backdrop-filter: blur(1px); /* More subtle blur */
+      }
+
+      /* Off-canvas menu styling */
+      .off-canvas-menu {
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .off-canvas-menu.open {
+        transform: translateX(0);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .card {
+        @apply bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
+      }
+
+      /* Custom styles for the unique search bar */
+      .search-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        /* Removed conflicting max-width here, now controlled by Tailwind classes */
+      }
+
+      .search-input-unique {
+        flex-grow: 1;
+        padding: 1rem 3.5rem 1rem 1.25rem; /* Increased right padding for better mobile responsiveness */
+        border: none; /* Remove default border */
+        border-radius: 9999px; /* Full rounded */
+        background-color: rgba(
+          255,
+          255,
+          255,
+          0.95
+        ); /* Slightly transparent white */
+        color: #333;
+        font-size: 1rem; /* Slightly smaller font size */
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
+        transition: all 0.3s ease-in-out;
+        outline: none; /* Remove outline on focus */
+      }
+
+      .search-input-unique::placeholder {
+        color: #718096; /* Tailwind gray-500 */
+        opacity: 0.9;
+        font-weight: 500;
+      }
+
+      .search-input-unique:focus {
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1),
+          0 0 0 3px rgba(52, 211, 153, 0.5); /* Tailwind green-400 with opacity */
+        transform: scale(1.01);
+      }
+
+      .search-button-unique {
+        position: absolute;
+        right: 0.5rem; /* Adjusted position for icon */
+        background: linear-gradient(
+          45deg,
+          #10b981,
+          #059669
+        ); /* Tailwind green-500 to green-700 */
+        color: white;
+        padding: 0.6rem; /* Reduced padding for a smaller button */
+        border-radius: 9999px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .search-button-unique:hover {
+        transform: scale(1.08) rotate(5deg);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .search-button-unique svg {
+        width: 1.5rem; /* Smaller icon size */
+        height: 1.5rem; /* Smaller icon size */
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-sans flex flex-col min-h-screen">
+    <button
+      id="translateBtn"
+      class="fixed bottom-6 right-6 bg-yellow-400 text-gray-900 px-5 py-2 rounded-full shadow-lg hover:bg-yellow-500 transition z-50 text-base font-medium"
+    >
+      🌐 Translate
+    </button>
+
+    <div
+      id="translateModal"
+      class="fixed inset-0 bg-black bg-opacity-60 hidden justify-center items-center z-[100]"
+    >
+      <div
+        class="bg-white rounded-xl p-8 w-11/12 max-w-md text-center shadow-2xl"
+      >
+        <h2 class="text-2xl font-bold mb-5 text-gray-800">Select Language</h2>
+        <div class="space-y-4 text-left mb-8">
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="radio"
+              name="language"
+              value="en"
+              class="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-green-500"
+              checked
+            />
+            <span class="text-lg text-gray-700">English</span>
+          </label>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="radio"
+              name="language"
+              value="hi"
+              class="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-green-500"
+            />
+            <span class="text-lg text-gray-700">हिंदी (Hindi)</span>
+          </label>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="radio"
+              name="language"
+              value="kan"
+              class="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-green-500"
+            />
+            <span class="text-lg text-gray-700">ಕನ್ನಡ (Kannada)</span>
+          </label>
+        </div>
+        <div class="mt-6 space-x-4">
+          <button
+            id="applyTranslate"
+            class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200 text-lg font-medium shadow-md"
+          >
+            Apply
+          </button>
+          <button
+            id="cancelTranslate"
+            class="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition duration-200 text-lg font-medium shadow-md"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <header
+      id="mainHeader"
+      class="fixed top-0 left-0 w-full z-40 py-4 px-6 md:px-12 flex items-center justify-between header-transparent text-white"
+    >
+      <div class="flex items-center">
+        <a href="index.html" class="flex items-center space-x-3">
+          <img
+            src="logo.jpg"
+            alt="RootsStay Logo"
+            class="h-14 w-14 rounded-full shadow-md"
+          />
+          <h1
+            id="headerTitle"
+            class="text-3xl font-extrabold tracking-tight drop-shadow"
+          >
+            RootsStay
+          </h1>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex space-x-8 text-lg font-semibold">
+        <a
+          href="host-upload.html"
+          id="navHost"
+          class="hover:text-green-200 transition duration-200"
+          >Host Your Stay</a
+        >
+        <a
+          href="#aboutPlatformSection"
+          id="navAboutPlatform"
+          class="hover:text-green-200 transition duration-200"
+          >About Platform</a
+        >
+        <a
+          href="#aboutDevelopersSection"
+          id="aboutDevelopersSectio"
+          class="hover:text-green-200 transition duration-200"
+          >About Developers</a
+        >
+        <a
+          href="#aboutContactSection"
+          id="navContact"
+          class="hover:text-green-200 transition duration-200"
+          >Contact</a
+        >
+        <a
+          href="host-upload.html"
+          id="navSignInLogin"
+          class="hover:text-green-200 transition duration-200"
+          >Sign In / Login</a
+        >
+        <button
+          id="navSignOut"
+          class="hidden bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"
+        >
+          Sign Out
+        </button>
+      </nav>
+
+      <button
+        id="menuToggle"
+        class="p-2 rounded-md hover:bg-white hover:bg-opacity-20 transition focus:outline-none md:hidden"
+      >
+        <svg
+          class="w-10 h-10 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16m-7 6h7"
+          ></path>
+        </svg>
+      </button>
+    </header>
+
+    <nav
+      id="offCanvasMenu"
+      class="fixed top-0 right-0 w-64 md:w-80 h-full bg-green-800 text-white shadow-2xl z-50 p-8 pt-24 off-canvas-menu md:hidden"
+    >
+      <button
+        id="closeMenu"
+        class="absolute top-6 right-6 p-2 rounded-full hover:bg-green-700 transition focus:outline-none"
+      >
+        <svg
+          class="w-8 h-8 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+      </button>
+      <ul class="space-y-6 text-xl font-semibold">
+        <li>
+          <a
+            href="host-upload.html"
+            id="navHostMobile"
+            class="block hover:bg-green-700 rounded px-4 py-3 transition duration-200"
+            >Host Your Stay</a
+          >
+        </li>
+        <li>
+          <a
+            href="#aboutPlatformSection"
+            id="navAboutPlatformMobile"
+            class="block hover:bg-green-700 rounded px-4 py-3 transition duration-200"
+            >About Platform</a
+          >
+        </li>
+        <li>
+          <a
+            href="#aboutDevelopersSection"
+            id="aboutDevelopersSectionMobile"
+            class="block hover:bg-green-700 rounded px-4 py-3 transition duration-200"
+            >About Developers</a
+          >
+        </li>
+        <li>
+          <a
+            href="#aboutContactSection"
+            id="navContactMobile"
+            class="block hover:bg-green-700 rounded px-4 py-3 transition duration-200"
+            >Contact</a
+          >
+        </li>
+        <li>
+          <a
+            href="host-upload.html"
+            id="navSignInLoginMobile"
+            class="block hover:bg-green-700 rounded px-4 py-3 transition duration-200"
+            >Sign In / Login</a
+          >
+        </li>
+        <li>
+          <button
+            id="navSignOutMobile"
+            class="hidden bg-red-600 text-white px-4 py-3 rounded-md hover:bg-red-700 transition duration-200 w-full text-left"
+          >
+            Sign Out
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <main class="flex-1">
+      <section
+        class="hero-background relative flex flex-col items-center justify-center p-6 md:p-12 text-white text-center min-h-[90vh]"
+      >
+        <div
+          class="hero-overlay absolute inset-0 z-10 flex flex-col items-center justify-center p-6"
+        >
+          <h2
+            id="heroTitle"
+            class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight drop-shadow-2xl"
+          >
+            Discover Authentic Rural India
+          </h2>
+          <p
+            id="heroSubtitle"
+            class="text-xl md:text-3xl mb-10 max-w-4xl drop-shadow-lg leading-relaxed font-light"
+          >
+            Find unique stays and immersive experiences directly from the heart
+            of local communities, supporting sustainable tourism and local
+            livelihoods.
+          </p>
+          <div class="search-container w-full max-w-md">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search villages or experiences..."
+              class="search-input-unique"
+            />
+            <button id="discoverBtn" class="search-button-unique">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          </div>
+          <a href="listings.html">
+            <button
+              id="showListingsBtn"
+              class="bg-green-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-green-700 transition mt-8"
+            >
+              Show listings
+            </button>
+          </a>
+        </div>
+      </section>
+
+      <section class="bg-gradient-to-b from-gray-50 to-gray-200 py-16 px-4">
+        <div class="container mx-auto text-center">
+          <h3
+            id="whyTitle"
+            class="text-4xl md:text-5xl font-bold text-gray-800 mb-12"
+          >
+            Why RootsStay?
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="card">
+              <h4 class="text-2xl font-semibold text-green-700 mb-4">
+                Authentic Experiences
+              </h4>
+              <p class="text-gray-700 text-lg leading-relaxed">
+                Connect directly with rural hosts for genuine insights into
+                local life, culture, and traditions, far from typical tourist
+                paths.
+              </p>
+            </div>
+            <div class="card">
+              <h4 class="text-2xl font-semibold text-green-700 mb-4">
+                Support Local Communities
+              </h4>
+              <p class="text-gray-700 text-lg leading-relaxed">
+                Every stay directly supports the community, with a significant
+                portion of earnings reaching local hosts and fostering economic
+                growth.
+              </p>
+            </div>
+            <div class="card">
+              <h4 class="text-2xl font-semibold text-green-700 mb-4">
+                Sustainable Tourism
+              </h4>
+              <p class="text-gray-700 text-lg leading-relaxed">
+                Promote cultural preservation and sustainable development
+                through responsible travel practices that respect local
+                environments.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="aboutPlatformSection"
+        class="bg-white py-16 px-4 border-b border-gray-200"
+      >
+        <div class="container mx-auto text-center max-w-5xl">
+          <h3
+            id="aboutPlatformTitle"
+            class="text-4xl md:text-5xl font-bold text-gray-800 mb-8"
+          >
+            About RootsStay Platform
+          </h3>
+          <p
+            id="aboutPlatformDesc"
+            class="text-lg md:text-xl text-gray-700 leading-loose"
+          >
+            RootsStay is a revolutionary platform dedicated to promoting rural
+            tourism and empowering local communities across India. We bridge the
+            gap between adventurous travelers seeking authentic experiences and
+            rural families eager to share their heritage and hospitality. By
+            booking through RootsStay, you not only embark on an unforgettable
+            journey but also directly contribute to the sustainable development
+            and economic upliftment of rural areas. Our mission is to preserve
+            cultural traditions, support local economies, and offer a unique
+            glimpse into the heart of rural India.
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="aboutDevelopersSection"
+        class="bg-gray-100 py-16 px-4 border-b border-gray-200"
+      >
+        <div class="container mx-auto text-center max-w-5xl">
+          <h3
+            id="aboutDevelopersTitle"
+            class="text-4xl md:text-5xl font-bold text-gray-800 mb-8"
+          >
+            About Our Team
+          </h3>
+          <p
+            id="aboutDevelopersDesc"
+            class="text-lg md:text-xl text-gray-700 leading-loose"
+          >
+            We are a dedicated team of student developers passionate about
+            creating technology that makes a tangible social impact. Through
+            RootsStay, our goal is to empower rural communities, foster cultural
+            preservation, and enable sustainable tourism across India. We strive
+            to achieve this by building a user-friendly and inclusive digital
+            platform. We firmly believe that technology can effectively bridge
+            the rural and urban divide in India, and RootsStay represents a
+            significant step towards realizing that transformative vision.
+          </p>
+        </div>
+      </section>
+
+      <section id="aboutContactSection" class="bg-white py-16 px-4">
+        <div class="container mx-auto text-center max-w-4xl">
+          <h3
+            id="aboutContactTitle"
+            class="text-4xl md:text-5xl font-bold text-gray-800 mb-8"
+          >
+            Connect With Us
+          </h3>
+          <p class="text-xl text-gray-700 mb-6">
+            For inquiries or collaborations, please reach out to our team:
+          </p>
+          <ul
+            id="aboutContactDesc"
+            class="text-lg text-gray-700 space-y-4 list-none p-0"
+          >
+            <li class="flex items-center justify-center space-x-3">
+              <strong class="text-green-700">Mohammed Mavia Shariff</strong>
+              <span>@ ST Philomenas College Mysore</span>
+            </li>
+            <li class="flex items-center justify-center space-x-3">
+              <strong class="text-green-700">Mohammed Toufiq</strong>
+              <span>@ ST Philomenas College Mysore</span>
+            </li>
+            <li class="flex items-center justify-center space-x-3">
+              <strong class="text-green-700">Mohammed Umer</strong>
+              <span>@ VVCE Mysore</span>
+            </li>
+            <li class="flex items-center justify-center space-x-3">
+              <strong class="text-green-700">Arafat Ali Khan</strong>
+              <span>@ VVCE Mysore</span>
+            </li>
+            <li class="flex items-center justify-center space-x-3">
+              <strong class="text-green-700">Mohammed Danish</strong>
+              <span>@ VVCE Mysore</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-10 px-4">
+      <div class="container mx-auto text-center">
+        <div class="mb-6">
+          <img
+            src="logo.jpg"
+            alt="RootsStay Logo"
+            class="h-16 w-16 rounded-full mx-auto mb-3 opacity-80"
+          />
+          <p class="text-3xl font-extrabold text-gray-100">RootsStay</p>
+        </div>
+        <p id="footerText" class="text-gray-400 text-md mb-6">
+          © 2025 RootsStay. Empowering Rural India. All rights reserved.
+        </p>
+        <div class="flex flex-wrap justify-center space-x-6 text-lg">
+          <a href="#" class="text-gray-400 hover:text-green-400 transition mb-2"
+            >Privacy Policy</a
+          >
+          <a href="#" class="text-gray-400 hover:text-green-400 transition mb-2"
+            >Terms of Service</a
+          >
+          <a href="#" class="text-gray-400 hover:text-green-400 transition mb-2"
+            >FAQ</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCeNKQERwHDThmiNd1YUeogPVn6X0UKI4c",
+        authDomain: "rootstay-f9335.firebaseapp.com",
+        projectId: "rootstay-f9335",
+        storageBucket: "rootstay-f9335.appspot.com",
+        messagingSenderId: "997017904027",
+        appId: "1:997017904027:web:24a2d07fa7a776a290773e",
+        measurementId: "G-13HML9X5XH",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // Elements for dynamic visibility
+      const navHost = document.getElementById("navHost");
+      const navSignInLogin = document.getElementById("navSignInLogin");
+      const navSignOut = document.getElementById("navSignOut");
+      const navHostMobile = document.getElementById("navHostMobile");
+      const navSignInLoginMobile = document.getElementById(
+        "navSignInLoginMobile"
+      );
+      const navSignOutMobile = document.getElementById("navSignOutMobile");
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // User is signed in, check if they are a host
+          const hostRef = doc(db, "hosts", user.uid);
+          const hostDoc = await getDoc(hostRef);
+          if (hostDoc.exists() && hostDoc.data().isHost) {
+            // User is a host
+            navHost.classList.remove("hidden"); // Show "Host Your Stay"
+            navHostMobile.classList.remove("hidden");
+            navSignInLogin.classList.add("hidden"); // Hide "Sign In / Login"
+            navSignInLoginMobile.classList.add("hidden");
+            navSignOut.classList.remove("hidden"); // Show "Sign Out"
+            navSignOutMobile.classList.remove("hidden");
+          } else {
+            // User is signed in but not a host (or not yet marked as one)
+            navHost.classList.add("hidden"); // Hide "Host Your Stay"
+            navHostMobile.classList.add("hidden");
+            navSignInLogin.classList.add("hidden"); // Hide "Sign In / Login"
+            navSignInLoginMobile.classList.add("hidden");
+            navSignOut.classList.remove("hidden"); // Show "Sign Out"
+            navSignOutMobile.classList.remove("hidden");
+          }
+        } else {
+          // User is signed out
+          navHost.classList.remove("hidden"); // Show "Host Your Stay"
+          navHostMobile.classList.remove("hidden");
+          navSignInLogin.classList.remove("hidden"); // Show "Sign In / Login"
+          navSignInLoginMobile.classList.remove("hidden");
+          navSignOut.classList.add("hidden"); // Hide "Sign Out"
+          navSignOutMobile.classList.add("hidden");
+        }
+      });
+
+      // Sign Out functionality
+      navSignOut.addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+          console.log("User signed out.");
+          // No need to redirect, onAuthStateChanged will handle UI update
+        } catch (error) {
+          console.error("Error signing out:", error);
+          alert("Error signing out. Please try again.");
+        }
+      });
+
+      navSignOutMobile.addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+          console.log("User signed out from mobile.");
+          offCanvasMenu.classList.remove("open"); // Close mobile menu after sign out
+        } catch (error) {
+          console.error("Error signing out:", error);
+          alert("Error signing out. Please try again.");
+        }
+      });
+
+      document
+        .getElementById("discoverBtn")
+        .addEventListener("click", function () {
+          const searchQuery = document.getElementById("searchInput").value;
+          window.location.href = `listings.html?search=${encodeURIComponent(
+            searchQuery
+          )}`;
+        });
+
+      const translateBtn = document.getElementById("translateBtn");
+      const translateModal = document.getElementById("translateModal");
+      const applyTranslate = document.getElementById("applyTranslate");
+      const cancelTranslate = document.getElementById("cancelTranslate");
+
+      translateBtn.addEventListener("click", () => {
+        translateModal.classList.remove("hidden");
+        translateModal.classList.add("flex");
+      });
+
+      cancelTranslate.addEventListener("click", () => {
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+      });
+
+      applyTranslate.addEventListener("click", () => {
+        const selectedLang = document.querySelector(
+          'input[name="language"]:checked'
+        ).value;
+        translateContent(selectedLang);
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+      });
+
+      function translateContent(lang) {
+        const translations = {
+          en: {
+            headerTitle: "RootsStay",
+            navHost: "Host Your Stay",
+            navAboutPlatform: "About Platform",
+            navAbout: "About Developers",
+            navContact: "Contact",
+            navSignInLogin: "Sign In / Login",
+            heroTitle: "Discover Authentic Rural India",
+            heroSubtitle:
+              "Find unique stays and immersive experiences directly from the heart of local communities, supporting sustainable tourism and local livelihoods.",
+            searchPlaceholder: "Search villages or experiences...",
+            discoverBtn: "Explore Stays",
+            whyTitle: "Why RootsStay?",
+            whyDesc: {
+              title1: "Authentic Experiences",
+              desc1:
+                "Connect directly with rural hosts for genuine insights into local life, culture, and traditions, far from typical tourist paths.",
+              title2: "Support Local Communities",
+              desc2:
+                "Every stay directly supports the community, with a significant portion of earnings reaching local hosts and fostering economic growth.",
+              title3: "Sustainable Tourism",
+              desc3:
+                "Promote cultural preservation and sustainable development through responsible travel practices that respect local environments.",
+            },
+            aboutPlatformTitle: "About RootsStay Platform",
+            aboutPlatformDesc:
+              "RootsStay is a revolutionary platform dedicated to promoting rural tourism and empowering local communities across India. We bridge the gap between adventurous travelers seeking authentic experiences and rural families eager to share their heritage and hospitality. By booking through RootsStay, you not only embark on an unforgettable journey but also directly contribute to the sustainable development and economic upliftment of rural areas. Our mission is to preserve cultural traditions, support local economies, and offer a unique glimpse into the heart of rural India.",
+            aboutDevelopersTitle: "About Our Team",
+            aboutDevelopersDesc:
+              "We are a dedicated team of student developers passionate about creating technology that makes a tangible social impact. Through RootsStay, our goal is to empower rural communities, foster cultural preservation, and enable sustainable tourism across India. We strive to achieve this by building a user-friendly and inclusive digital platform. We firmly believe that technology can effectively bridge the rural and urban divide in India, and RootsStay represents a significant step towards realizing that transformative vision.",
+            aboutContactTitle: "Connect With Us",
+            aboutContactIntro:
+              "For inquiries or collaborations, please reach out to our team:",
+            footerText:
+              "© 2025 RootsStay. Empowering Rural India. All rights reserved.",
+          },
+          hi: {
+            headerTitle: "रूट्सस्टे",
+            navHost: "अपनी होस्टिंग जोड़ें",
+            navAboutPlatform: "प्लेटफॉर्म के बारे में",
+            navAbout: "डेवलपर्स के बारे में",
+            navContact: "संपर्क करें",
+            navSignInLogin: "साइन इन / लॉगिन",
+            heroTitle: "प्रामाणिक ग्रामीण भारत की खोज करें",
+            heroSubtitle:
+              "स्थानीय समुदायों के दिल से अनोखे ठहरने और अनुभवों को खोजें, सतत पर्यटन और स्थानीय आजीविका का समर्थन करें।",
+            searchPlaceholder: "गांव या अनुभव खोजें...",
+            discoverBtn: "ठहरने की खोज करें",
+            whyTitle: "क्यों रूट्सस्टे?",
+            whyDesc: {
+              title1: "प्रामाणिक अनुभव",
+              desc1:
+                "स्थानीय जीवन, संस्कृति और परंपराओं में वास्तविक अंतर्दृष्टि के लिए सीधे ग्रामीण मेजबानों से जुड़ें, विशिष्ट पर्यटक मार्गों से दूर।",
+              title2: "स्थानीय समुदायों का समर्थन करें",
+              desc2:
+                "हर प्रवास सीधे समुदाय का समर्थन करता है, जिसमें कमाई का एक महत्वपूर्ण हिस्सा स्थानीय मेजबानों तक पहुंचता है और आर्थिक विकास को बढ़ावा देता है।",
+              title3: "सतत पर्यटन",
+              desc3:
+                "जिम्मेदार यात्रा प्रथाओं के माध्यम से सांस्कृतिक संरक्षण और सतत विकास को बढ़ावा दें जो स्थानीय वातावरण का सम्मान करते हैं।",
+            },
+            aboutPlatformTitle: "रूट्सस्टे प्लेटफॉर्म के बारे में",
+            aboutPlatformDesc:
+              "रूट्सस्टे भारत भर में ग्रामीण पर्यटन को बढ़ावा देने और स्थानीय समुदायों को सशक्त बनाने के लिए समर्पित एक क्रांतिकारी मंच है। हम प्रामाणिक अनुभवों की तलाश करने वाले साहसी यात्रियों और अपनी विरासत और आतिथ्य साझा करने के इच्छुक ग्रामीण परिवारों के बीच की खाई को पाटते हैं। रूट्सस्टे के माध्यम से बुकिंग करके, आप न केवल एक अविस्मरणीय यात्रा पर निकलते हैं बल्कि ग्रामीण क्षेत्रों के सतत विकास और आर्थिक उत्थान में भी सीधे योगदान करते हैं। हमारा मिशन सांस्कृतिक परंपराओं को संरक्षित करना, स्थानीय अर्थव्यवस्थाओं का समर्थन करना और ग्रामीण भारत के दिल में एक अनूठी झलक प्रदान करना है।",
+            aboutDevelopersTitle: "हमारी टीम के इंच",
+            aboutDevelopersDesc:
+              "हम छात्र डेवलपर्स की एक समर्पित टीम हैं जो ऐसी तकनीक बनाने के प्रति उत्साही हैं जो ठोस सामाजिक प्रभाव डालती है। रूट्सस्टे के माध्यम से, हमारा लक्ष्य ग्रामीण समुदायों को सशक्त बनाना, सांस्कृतिक संरक्षण को बढ़ावा देना और पूरे भारत में सतत पर्यटन को सक्षम बनाना है। हम एक उपयोगकर्ता के अनुकूल और समावेशी डिजिटल प्लेटफॉर्म का निर्माण करके इसे प्राप्त करने का प्रयास करते हैं। हम दृढ़ता से मानते हैं कि प्रौद्योगिकी भारत में ग्रामीण और शहरी विभाजन को प्रभावी ढंग से पाट सकती है, और रूट्सस्टे उस परिवर्तनकारी दृष्टि को साकार करने की दिशा में एक महत्वपूर्ण कदम का प्रतिनिधित्व करती है।",
+            aboutContactTitle: "हमसे जुड़ें",
+            aboutContactIntro:
+              "पूछताछ या सहयोग के लिए, कृपया हमारी टीम से संपर्क करें:",
+            footerText:
+              "© 2025 रूट्सस्टे। ग्रामीण भारत को सशक्त बना रहा है। सभी अधिकार सुरक्षित।",
+          },
+          kan: {
+            headerTitle: "ರೂಟ್‌ಸ್ಟೇ",
+            navHost: "ನಿಮ್ಮ ವಾಸ್ತವಿಕತೆಯನ್ನು ಹಾಕಿ",
+            navAboutPlatform: "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಬಗ್ಗೆ",
+            navAbout: "ಅಭಿವೃದ್ಧಿಪಡಿಸುವವರ ಬಗ್ಗೆ",
+            navContact: "ಸಂಪರ್ಕಿಸಿ",
+            navSignInLogin: "ಸೈನ್ ಇನ್ / ಲಾಗಿನ್",
+            heroTitle: "ಆತ್ಮೀಯ ಗ್ರಾಮೀಣ ಭಾರತವನ್ನು ಅನ್ವೇಷಿಸಿ",
+            heroSubtitle:
+              "ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳ ಹೃದಯದಿಂದ ಅನನ್ಯ ವಾಸ್ತವಿಕತೆಗಳು ಮತ್ತು ಅನುಭವಗಳನ್ನು ಹುಡುಕಿ, ಸುಸ್ಥಿರ ಪ್ರವಾಸೋದ್ಯಮ ಮತ್ತು ಸ್ಥಳೀಯ ಜೀವನೋಪಾಯವನ್ನು ಬೆಂಬಲಿಸಿ.",
+            searchPlaceholder: "ಗ್ರಾಮಗಳು ಅಥವಾ ಅನುಭವಗಳನ್ನು ಹುಡುಕಿ...",
+            discoverBtn: "ವಾಸ್ತವಿಕತೆಗಳನ್ನು ಅನ್ವೇಷಿಸಿ",
+            whyTitle: "ಏಕೆ ರೂಟ್‌ಸ್ಟೇ?",
+            whyDesc: {
+              title1: "ಪ್ರಾಮಾಣಿಕ ಅನುಭವಗಳು",
+              desc1:
+                "ವಿಶಿಷ್ಟ ಪ್ರವಾಸಿ ಮಾರ್ಗಗಳಿಂದ ದೂರವಿರುವ ಸ್ಥಳೀಯ ಜೀವನ, ಸಂಸ್ಕೃತಿ ಮತ್ತು ಸಂಪ್ರದಾಯಗಳ ಬಗ್ಗೆ ನಿಜವಾದ ಒಳನೋಟಗಳಿಗಾಗಿ ನೇರವಾಗಿ ಗ್ರಾಮೀಣ ಹೋಸ್ಟ್‌ಗಳೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
+              title2: "ಸ್ಥಳೀಯ ಸಮುದಾಯಗಳನ್ನು ಬೆಂಬಲಿಸಿ",
+              desc2:
+                "ಪ್ರತಿ ತಂಗುವಿಕೆ ನೇರವಾಗಿ ಸಮುದಾಯವನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ, ಆದಾಯದ ಗಣನೀಯ ಭಾಗವು ಸ್ಥಳೀಯ ಹೋಸ್ಟ್‌ಗಳನ್ನು ತಲುಪುತ್ತದೆ ಮತ್ತು ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆಯನ್ನು ಉತ್ತೇಜಿಸುತ್ತದೆ.",
+              title3: "ಸುಸ್ಥಿರ ಪ್ರವಾಸೋದ್ಯಮ",
+              desc3:
+                "ಸ್ಥಳೀಯ ಪರಿಸರಗಳನ್ನು ಗೌರವಿಸುವ ಜವಾಬ್ದಾರಿಯುತ ಪ್ರಯಾಣದ ಅಭ್ಯಾಸಗಳ ಮೂಲಕ ಸಾಂಸ್ಕೃತಿಕ ಸಂರಕ್ಷಣೆ ಮತ್ತು ಸುಸ್ಥಿರ ಅಭಿವೃದ್ಧಿಯನ್ನು ಉತ್ತೇಜಿಸಿ.",
+            },
+            aboutPlatformTitle: "ರೂಟ್‌ಸ್ಟೇ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಬಗ್ಗೆ",
+            aboutPlatformDesc:
+              "ರೂಟ್‌ಸ್ಟೇ ಭಾರತದಾದ್ಯಂತ ಗ್ರಾಮೀಣ ಪ್ರವಾಸೋದ್ಯಮವನ್ನು ಉತ್ತೇಜಿಸಲು ಮತ್ತು ಸ್ಥಳೀಯ ಸಮುದಾಯಗಳಿಗೆ ಅಧಿಕಾರ ನೀಡಲು ಮೀಸಲಾಗಿರುವ ಒಂದು ಕ್ರಾಂತಿಕಾರಿ ವೇದಿಕೆಯಾಗಿದೆ. ನಾವು ಪ್ರಾಮಾಣಿಕ ಅನುಭವಗಳನ್ನು ಬಯಸುವ ಸಾಹಸಿ ಪ್ರಯಾಣಿಕರು ಮತ್ತು ತಮ್ಮ ಪರಂಪರೆ ಮತ್ತು ಆತಿಥ್ಯವನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಉತ್ಸುಕರಾಗಿರುವ ಗ್ರಾಮೀಣ ಕುಟುಂಬಗಳ ನಡುವಿನ ಅಂತರವನ್ನು ಕಡಿಮೆ ಮಾಡುತ್ತೇವೆ. ರೂಟ್‌ಸ್ಟೇ ಮೂಲಕ ಬುಕಿಂಗ್ ಮಾಡುವ ಮೂಲಕ, ನೀವು ಮರೆಯಲಾಗದ ಪ್ರಯಾಣವನ್ನು ಪ್ರಾರಂಭಿಸುವುದಲ್ಲದೆ, ಗ್ರಾಮೀಣ ಪ್ರದೇಶಗಳ ಸುಸ್ಥಿರ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ಆರ್ಥಿಕ ಉನ್ನತಿಗೂ ನೇರವಾಗಿ ಕೊಡುಗೆ ನೀಡುತ್ತೀರಿ. ನಮ್ಮ ಉದ್ದೇಶ ಸಾಂಸ್ಕೃತಿಕ ಸಂಪ್ರದಾಯಗಳನ್ನು ಸಂರಕ್ಷಿಸುವುದು, ಸ್ಥಳೀಯ ಆರ್ಥಿಕತೆಗಳನ್ನು ಬೆಂಬಲಿಸುವುದು ಮತ್ತು ಗ್ರಾಮೀಣ ಭಾರತದ ಹೃದಯಭಾಗಕ್ಕೆ ಒಂದು ವಿಶಿಷ್ಟ ನೋಟವನ್ನು ನೀಡುವುದು.",
+            aboutDevelopersTitle: "ನಮ್ಮ ತಂಡದ ಬಗ್ಗೆ",
+            aboutDevelopersDesc:
+              "ನಾವು ವಿದ್ಯಾರ್ಥಿ ಅಭಿವರ್ಧಕರ ಸಮರ್ಪಿತ ತಂಡವಾಗಿದ್ದು, ಸ್ಪಷ್ಟವಾದ ಸಾಮಾಜಿಕ ಪರಿಣಾಮ ಬೀರುವ ತಂತ್ರಜ್ಞಾನವನ್ನು ರಚಿಸುವ ಬಗ್ಗೆ ಉತ್ಸಾಹ ಹೊಂದಿದ್ದೇವೆ. ರೂಟ್‌ಸ್ಟೇ ಮೂಲಕ, ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳಿಗೆ ಅಧಿಕಾರ ನೀಡಲು, ಸಾಂಸ್ಕೃತಿಕ ಸಂರಕ್ಷಣೆಯನ್ನು ಬೆಳೆಸಲು ಮತ್ತು ಭಾರತದಾದ್ಯಂತ ಸುಸ್ಥಿರ ಪ್ರವಾಸೋದ್ಯಮವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ನಮ್ಮ ಗುರಿಯಾಗಿದೆ. ಬಳಕೆದಾರ ಸ್ನೇಹಿ ಮತ್ತು ಅಂತರ್ಗತ ಡಿಜಿಟಲ್ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಅನ್ನು ನಿರ್ಮಿಸುವ ಮೂಲಕ ಇದನ್ನು ಸಾಧಿಸಲು ನಾವು ಪ್ರಯತ್ನಿಸುತ್ತೇವೆ. ತಂತ್ರಜ್ಞಾನವು ಭಾರತದಲ್ಲಿ ಗ್ರಾಮೀಣ ಮತ್ತು ನಗರ ವಿಭಜನೆಯನ್ನು ಪರಿಣಾಮಕಾರಿಯಾಗಿ ನಿವಾರಿಸಬಹುದು ಎಂದು ನಾವು ದೃಢವಾಗಿ ನಂಬುತ್ತೇವೆ, ಮತ್ತು ರೂಟ್‌ಸ್ಟೇ ಆ ಪರಿವರ್ತಕ ದೃಷ್ಟಿಯನ್ನು ಸಾಕಾರಗೊಳಿಸುವಲ್ಲಿ ಒಂದು ಮಹತ್ವದ ಹೆಜ್ಜೆಯನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ.",
+            aboutContactTitle: "ನಮ್ಮೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ",
+            aboutContactIntro:
+              "ಪ್ರಶ್ನೆಗಳು ಅಥವಾ ಸಹಯೋಗಗಳಿಗಾಗಿ, ದಯವಿಟ್ಟು ನಮ್ಮ ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ:",
+            footerText:
+              "© 2025 ರೂಟ್‌ಸ್ಟೇ. ಗ್ರಾಮೀಣ ಭಾರತವನ್ನು ಶಕ್ತಿಶಾಲಿಯಾಗಿಸುತ್ತಿದೆ. ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
+          },
+        };
+
+        const t = translations[lang];
+        document.getElementById("headerTitle").innerText = t.headerTitle;
+        document
+          .querySelectorAll("#navHost")
+          .forEach((el) => (el.innerText = t.navHost));
+        document
+          .querySelectorAll("#navAboutPlatform")
+          .forEach((el) => (el.innerText = t.navAboutPlatform));
+        document
+          .querySelectorAll("#aboutDevelopersSectio")
+          .forEach((el) => (el.innerText = t.navAbout));
+        document
+          .querySelectorAll("#navContact")
+          .forEach((el) => (el.innerText = t.navContact));
+        document
+          .querySelectorAll("#navSignInLogin")
+          .forEach((el) => (el.innerText = t.navSignInLogin));
+
+        document.getElementById("heroTitle").innerText = t.heroTitle;
+        document.getElementById("heroSubtitle").innerText = t.heroSubtitle;
+        document.getElementById("searchInput").placeholder =
+          t.searchPlaceholder;
+        document.getElementById("whyTitle").innerText = t.whyTitle;
+
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(1) h4"
+        ).innerText = t.whyDesc.title1;
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(1) p"
+        ).innerText = t.whyDesc.desc1;
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(2) h4"
+        ).innerText = t.whyDesc.title2;
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(2) p"
+        ).innerText = t.whyDesc.desc2;
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(3) h4"
+        ).innerText = t.whyDesc.title3;
+        document.querySelector(
+          "#whyTitle + div > div:nth-child(3) p"
+        ).innerText = t.whyDesc.desc3;
+
+        document.getElementById("aboutPlatformTitle").innerText =
+          t.aboutPlatformTitle;
+        document.getElementById("aboutPlatformDesc").innerText =
+          t.aboutPlatformDesc;
+        document.getElementById("aboutDevelopersTitle").innerText =
+          t.aboutDevelopersTitle;
+        document.getElementById("aboutDevelopersDesc").innerText =
+          t.aboutDevelopersDesc;
+        document.querySelector("#aboutContactSection h3").innerText =
+          t.aboutContactTitle;
+        document.querySelector("#aboutContactSection > div > p").innerText =
+          t.aboutContactIntro;
+
+        document.getElementById("footerText").innerText = t.footerText;
+
+        // Mobile nav translation
+        document.getElementById("navHostMobile").innerText = t.navHost;
+        document.getElementById("navAboutPlatformMobile").innerText =
+          t.navAboutPlatform;
+        document.getElementById("aboutDevelopersSectionMobile").innerText =
+          t.navAbout;
+        document.getElementById("navContactMobile").innerText = t.navContact;
+        document.getElementById("navSignInLoginMobile").innerText =
+          t.navSignInLogin;
+      }
+    </script>
+    <script>
+      const offCanvasMenu = document.getElementById("offCanvasMenu");
+      const menuToggle = document.getElementById("menuToggle");
+      const closeMenu = document.getElementById("closeMenu");
+      const mainHeader = document.getElementById("mainHeader");
+
+      // Open menu
+      menuToggle.addEventListener("click", () => {
+        offCanvasMenu.classList.add("open");
+      });
+
+      // Close menu
+      closeMenu.addEventListener("click", () => {
+        offCanvasMenu.classList.remove("open");
+      });
+
+      // Close menu when a link is clicked
+      document.querySelectorAll("#offCanvasMenu a").forEach((link) => {
+        link.addEventListener("click", () => {
+          offCanvasMenu.classList.remove("open");
+        });
+      });
+
+      // Handle header background on scroll
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+          // Change to solid after 50px scroll
+          mainHeader.classList.remove("header-transparent");
+          mainHeader.classList.add("header-solid");
+        } else {
+          mainHeader.classList.remove("header-solid");
+          mainHeader.classList.add("header-transparent");
+        }
+      });
+
+      // Initialize translation on page load
+      translateContent("en");
+    </script>
+  </body>
+</html>

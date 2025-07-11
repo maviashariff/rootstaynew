@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RootsStay - Host Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background-image: url("home.png"); /* Replace with your desired background image URL */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+      /* Add some basic styling for the sign-in area */
+      .auth-container {
+        @apply bg-white p-6 rounded-lg shadow mt-6 max-w-lg mx-auto text-center border border-gray-300; /* Added border */
+      }
+      .auth-container button {
+        /* General button styles, specific border color and radius for Google button will override these */
+        @apply bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700 transition flex items-center justify-center space-x-2;
+      }
+      .auth-container button.sign-out-btn {
+        @apply bg-red-600 hover:bg-red-700 mt-4;
+      }
+      .google-logo {
+        width: 30px; /* Small size for the logo */
+        height: 30px;
+        margin-bottom: 10px; /* Space between logo and button */
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
+    <button
+      id="translateBtn"
+      class="fixed top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded shadow hover:bg-yellow-500 z-50"
+    >
+      🌐 Translate
+    </button>
+
+    <div
+      id="translateModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg w-80 text-center">
+        <h2 class="text-xl font-bold mb-4" id="modalTitle">Select Language</h2>
+        <div class="space-y-2 text-left">
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="en"
+              class="form-radio text-green-600"
+              checked
+            />
+            <span>English</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="hi"
+              class="form-radio text-green-600"
+            />
+            <span>हिंदी (Hindi)</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="kan"
+              class="form-radio text-green-600"
+            />
+            <span>ಕನ್ನಡ (Kannada)</span>
+          </label>
+        </div>
+        <div class="mt-4 space-x-2">
+          <button
+            id="applyTranslate"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Apply
+          </button>
+          <button
+            id="cancelTranslate"
+            class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <header
+      class="flex items-center justify-center py-6 bg-[rgba(22,101,52,0.95)] text-white relative"
+    >
+      <div class="absolute left-4 top-1/2 -translate-y-1/2">
+        <a href="index.html">
+          <img src="logo.jpg" alt="RootsStay Logo" class="h-16 w-auto" />
+        </a>
+      </div>
+      <h1 id="headerTitle" class="text-2xl font-bold">Host Your Stay</h1>
+    </header>
+
+    <main class="flex-1">
+      <section id="authSection" class="auth-container">
+        <h2 class="text-xl font-semibold mb-4 text-center" id="authPrompt">
+          Sign in to list your stay
+        </h2>
+        <div
+          class="bg-white bg-opacity-75 rounded-lg p-6 flex flex-col items-center w-80 mx-auto"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png"
+            alt="Google Logo"
+            class="google-logo"
+          />
+          <button
+            id="google-sign-in-button"
+            type="button"
+            class="w-full sm:w-auto border border-blue-300 rounded-[25px]"
+          >
+            Sign in with Google
+          </button>
+        </div>
+        <p id="signInStatus" class="mt-4 text-green-700 hidden">
+          Signed in as: <span id="userEmail"></span>
+        </p>
+        <button id="sign-out-button" class="sign-out-btn hidden">
+          Sign Out
+        </button>
+      </section>
+
+      <section
+        id="hostFormSection"
+        class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow mt-6 hidden"
+      >
+        <h2 id="formTitle" class="text-xl font-semibold mb-4 text-center">
+          Host Listing Form
+        </h2>
+        <form id="hostForm" class="space-y-4">
+          <div>
+            <label for="villageName" id="labelVillage" class="block font-medium"
+              >Village Name:</label
+            >
+            <input
+              type="text"
+              id="villageName"
+              required
+              class="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <div>
+            <label
+              for="description"
+              id="labelDescription"
+              class="block font-medium"
+              >Description:</label
+            >
+            <textarea
+              id="description"
+              required
+              rows="3"
+              class="w-full p-2 border border-gray-300 rounded"
+            ></textarea>
+          </div>
+          <div>
+            <label for="price" id="labelPrice" class="block font-medium"
+              >Price per Night (₹):</label
+            >
+            <input
+              type="number"
+              id="price"
+              required
+              class="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <div>
+            <label for="imageLink" id="labelImage" class="block font-medium"
+              >Image Link (URL):</label
+            >
+            <input
+              type="url"
+              id="imageLink"
+              class="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <button
+            type="submit"
+            id="submitBtn"
+            class="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700 transition"
+          >
+            Submit Listing
+          </button>
+        </form>
+        <p
+          id="confirmationMessage"
+          class="text-green-700 font-semibold text-center mt-4 hidden"
+        >
+          🎉 Your stay has been listed successfully!
+        </p>
+      </section>
+    </main>
+
+    <footer id="footerText" class="text-center text-gray-600 py-4 mt-6">
+      © 2025 RootsStay
+    </footer>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+        doc,
+        setDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCeNKQERwHDThmiNd1YUeogPVn6X0UKI4c",
+        authDomain: "rootstay-f9335.firebaseapp.com",
+        projectId: "rootstay-f9335",
+        storageBucket: "rootstay-f9335.appspot.com",
+        messagingSenderId: "997017904027",
+        appId: "1:997017904027:web:24a2d07fa7a776a290773e",
+        measurementId: "G-13HML9X5XH",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app); // Optional, if you're using Analytics
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const listingsCollection = collection(db, "listings");
+      const hostsCollection = collection(db, "hosts"); // New collection for host profiles
+
+      // UI Elements
+      const authSection = document.getElementById("authSection");
+      const hostFormSection = document.getElementById("hostFormSection");
+      const googleSignInButton = document.getElementById(
+        "google-sign-in-button"
+      );
+      const signOutButton = document.getElementById("sign-out-button");
+      const authPrompt = document.getElementById("authPrompt");
+      const signInStatus = document.getElementById("signInStatus");
+      const userEmailSpan = document.getElementById("userEmail");
+      const confirmationMessage = document.getElementById(
+        "confirmationMessage"
+      );
+
+      let currentHostUid = null; // To store the UID of the logged-in host
+
+      // --- Authentication State Listener ---
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // User is signed in
+          console.log("User signed in:", user.uid, user.email);
+          userEmailSpan.innerText = user.email;
+          signInStatus.classList.remove("hidden");
+          googleSignInButton.classList.add("hidden");
+          signOutButton.classList.remove("hidden");
+          authPrompt.innerText = "Welcome, Host!";
+
+          // Check if the signed-in user is a registered host
+          const hostDocRef = doc(db, "hosts", user.uid);
+          const hostDocSnap = await getDoc(hostDocRef);
+
+          if (hostDocSnap.exists() && hostDocSnap.data().isHost) {
+            console.log("User is a registered host.");
+            currentHostUid = user.uid;
+            hostFormSection.classList.remove("hidden"); // Show the form
+            confirmationMessage.classList.add("hidden"); // Hide any previous confirmation
+          } else {
+            // User is signed in but not yet marked as a host in 'hosts' collection
+            console.log(
+              "User is signed in but not yet a registered host. Creating host profile..."
+            );
+            authPrompt.innerText = "Setting up your host account...";
+            try {
+              await setDoc(hostDocRef, {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || "New Host",
+                isHost: true, // Mark them as a host
+                createdAt: serverTimestamp(),
+              });
+              console.log("New host profile created.");
+              currentHostUid = user.uid;
+              hostFormSection.classList.remove("hidden"); // Show the form
+              authPrompt.innerText =
+                "Welcome, New Host! Please list your stay.";
+              confirmationMessage.classList.add("hidden");
+            } catch (error) {
+              console.error("Error creating host profile:", error);
+              authPrompt.innerText =
+                "Error setting up host account. Please try again.";
+              alert("Error setting up host account: " + error.message);
+              await signOut(auth); // Sign out if host profile creation fails
+            }
+          }
+        } else {
+          // User is signed out
+          console.log("User signed out.");
+          currentHostUid = null;
+          signInStatus.classList.add("hidden");
+          googleSignInButton.classList.remove("hidden");
+          signOutButton.classList.add("hidden");
+          hostFormSection.classList.add("hidden"); // Hide the form
+          authPrompt.innerText = "Sign in to list your stay";
+          confirmationMessage.classList.add("hidden");
+        }
+      });
+
+      // --- Google Sign-In Button Event Listener ---
+      googleSignInButton.addEventListener("click", async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+          await signInWithPopup(auth, provider);
+          // onAuthStateChanged listener will handle the rest
+        } catch (error) {
+          console.error("Google Sign-in Error:", error.message);
+          // Display a more user-friendly error message
+          let userFacingError =
+            "An error occurred during sign-in. Please try again.";
+          if (error.code === "auth/popup-closed-by-user") {
+            userFacingError =
+              "Sign-in window was closed. Please try again to sign in.";
+          } else if (error.code === "auth/cancelled-popup-request") {
+            userFacingError =
+              "Sign-in already in progress or blocked. Please try again.";
+          }
+          alert(userFacingError);
+        }
+      });
+
+      // --- Sign Out Button Event Listener ---
+      signOutButton.addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+          // onAuthStateChanged listener will handle UI updates
+        } catch (error) {
+          console.error("Error signing out:", error);
+          alert("Error signing out. Please try again.");
+        }
+      });
+
+      // --- Host Form Submission Logic ---
+      document
+        .getElementById("hostForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          if (!currentHostUid) {
+            alert("You must be signed in as a host to submit a listing.");
+            return;
+          }
+
+          const villageName = document.getElementById("villageName").value;
+          const description = document.getElementById("description").value;
+          const price = document.getElementById("price").value;
+          const imageLink = document.getElementById("imageLink").value;
+
+          try {
+            await addDoc(listingsCollection, {
+              village: villageName,
+              description: description,
+              price: "₹" + price + "/night",
+              image: imageLink,
+              timestamp: serverTimestamp(),
+              hostId: currentHostUid, // Associate the listing with the host's UID
+            });
+            confirmationMessage.classList.remove("hidden");
+            document.getElementById("hostForm").reset();
+            console.log("Listing added successfully by host:", currentHostUid);
+          } catch (error) {
+            console.error("Error adding document: ", error);
+            alert("Error adding listing. Please try again: " + error.message);
+          }
+        });
+
+      // --- Translation Logic (Existing) ---
+      const translateBtn = document.getElementById("translateBtn");
+      const translateModal = document.getElementById("translateModal");
+      const applyTranslate = document.getElementById("applyTranslate");
+      const cancelTranslate = document.getElementById("cancelTranslate");
+
+      translateBtn.addEventListener("click", () => {
+        translateModal.classList.remove("hidden");
+        translateModal.classList.add("flex");
+      });
+
+      cancelTranslate.addEventListener("click", () => {
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+      });
+
+      applyTranslate.addEventListener("click", () => {
+        const selectedLang = document.querySelector(
+          'input[name="language"]:checked'
+        ).value;
+        localStorage.setItem("rootsstayLang", selectedLang); // Save language preference
+        translateContent(selectedLang);
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+      });
+
+      function translateContent(lang) {
+        const translations = {
+          en: {
+            headerTitle: "RootsStay - List Your Stay",
+            modalTitle: "Select Language",
+            authPrompt: "Sign in to list your stay",
+            formTitle: "Host Listing Form",
+            labelVillage: "Village Name:",
+            labelDescription: "Description:",
+            labelPrice: "Price per Night (₹):",
+            labelImage: "Image Link (URL):",
+            submitBtn: "Submit Listing",
+            confirmationMessage: "🎉 Your stay has been listed successfully!",
+            footerText: "© 2025 RootsStay",
+          },
+          hi: {
+            headerTitle: "रूट्सस्टे - अपनी सूची जोड़ें",
+            modalTitle: "भाषा चुनें",
+            authPrompt: "अपनी सूची बनाने के लिए साइन इन करें",
+            formTitle: "मेजबानी सूची फॉर्म",
+            labelVillage: "गांव का नाम:",
+            labelDescription: "विवरण:",
+            labelPrice: "प्रति रात कीमत (₹):",
+            labelImage: "इमेज लिंक (URL):",
+            submitBtn: "सूची सबमिट करें",
+            confirmationMessage: "🎉 आपकी सूची सफलतापूर्वक जोड़ दी गई है!",
+            footerText: "© 2025 रूट्सस्टे",
+          },
+          kan: {
+            headerTitle: "ರೂಟ್‌ಸ್ಟೇ - ನಿಮ್ಮ ವಾಸ್ತವಿಕತೆಯನ್ನು ಸೇರಿಸಿ",
+            modalTitle: "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
+            authPrompt: "ನಿಮ್ಮ ವಾಸ್ತವಿಕತೆಯನ್ನು ಪಟ್ಟಿ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+            formTitle: "ಮೇಜಬಾನಿ ಪಟ್ಟಿಯ ಫಾರ್ಮ್",
+            labelVillage: "ಗ್ರಾಮದ ಹೆಸರು:",
+            labelDescription: "ವಿವರಣೆ:",
+            labelPrice: "ಪ್ರತಿ ರಾತ್ರಿ ಬೆಲೆ (₹):",
+            labelImage: "ಚಿತ್ರದ ಲಿಂಕ್ (URL):",
+            submitBtn: "ಪಟ್ಟಿಯನ್ನು ಸಲ್ಲಿಸಿ",
+            confirmationMessage: "🎉 ನಿಮ್ಮ ವಾಸ್ತವಿಕತೆ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ!",
+            footerText: "© 2025 ರೂಟ್‌ಸ್ಟೇ",
+          },
+        };
+
+        const t = translations[lang];
+        document.getElementById("headerTitle").innerText = t.headerTitle;
+        document.getElementById("modalTitle").innerText = t.modalTitle;
+        document.getElementById("authPrompt").innerText = t.authPrompt;
+        document.getElementById("formTitle").innerText = t.formTitle;
+        document.getElementById("labelVillage").innerText = t.labelVillage;
+        document.getElementById("labelDescription").innerText =
+          t.labelDescription;
+        document.getElementById("labelPrice").innerText = t.labelPrice;
+        document.getElementById("labelImage").innerText = t.labelImage;
+        document.getElementById("submitBtn").innerText = t.submitBtn;
+        document.getElementById("confirmationMessage").innerText =
+          t.confirmationMessage;
+        document.getElementById("footerText").innerText = t.footerText;
+      }
+
+      // Call translation on page load to apply default or last-selected language
+      document.addEventListener("DOMContentLoaded", () => {
+        const savedLang = localStorage.getItem("rootsstayLang") || "en";
+        document.querySelector(
+          `input[name="language"][value="${savedLang}"]`
+        ).checked = true;
+        translateContent(savedLang);
+      });
+    </script>
+  </body>
+</html>

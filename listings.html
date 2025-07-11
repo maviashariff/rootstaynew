@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RootsStay - Listings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <button
+      id="translateBtn"
+      class="fixed top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded shadow hover:bg-yellow-500 z-50"
+    >
+      🌐 Translate
+    </button>
+
+    <div
+      id="translateModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg w-80 text-center">
+        <h2 class="text-xl font-bold mb-4">Select Language</h2>
+        <div class="space-y-2 text-left">
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="en"
+              class="form-radio text-green-600"
+              checked
+            />
+            <span>English</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="hi"
+              class="form-radio text-green-600"
+            />
+            <span>हिंदी (Hindi)</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="language"
+              value="kan"
+              class="form-radio text-green-600"
+            />
+            <span>ಕನ್ನಡ (Kannada)</span>
+          </label>
+        </div>
+        <div class="mt-4 space-x-2">
+          <button
+            id="applyTranslate"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Apply
+          </button>
+          <button
+            id="cancelTranslate"
+            class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <header
+      class="flex items-center justify-center py-6 bg-[rgba(22,101,52,0.95)] text-white relative"
+    >
+      <div class="absolute left-4 top-1/2 -translate-y-1/2">
+        <a href="index.html">
+          <img src="logo.jpg" alt="RootsStay Logo" class="h-16 w-auto" />
+        </a>
+      </div>
+      <h1 id="headerTitle" class="text-2xl font-bold">RootsStay Listings</h1>
+    </header>
+
+    <section
+      id="listingsContainer"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 max-w-6xl mx-auto"
+    ></section>
+
+    <footer id="footerText" class="text-center text-gray-600 py-4">
+      © 2025 RootsStay
+    </footer>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        query,
+        orderBy,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCeNKQERwHDThmiNd1YUeogPVn6X0UKI4c",
+        authDomain: "rootstay-f9335.firebaseapp.com",
+        projectId: "rootstay-f9335",
+        storageBucket: "rootstay-f9335.appspot.com",
+        messagingSenderId: "997017777777",
+        appId: "1:997017904027:web:24a2d07fa7a776a290773e",
+        measurementId: "G-13HML9X5XH",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      const params = new URLSearchParams(window.location.search);
+      const searchQuery = params.get("search")
+        ? params.get("search").toLowerCase()
+        : "";
+
+      function createListingCard(listing) {
+        const villageName = listing.village ?? "Unknown Village";
+        const descriptionText =
+          listing.description ?? "No description available.";
+        const priceDisplay = listing.price ?? "Price not available";
+        const imageUrl =
+          listing.image ??
+          "https://placehold.co/400x200/60a5fa/ffffff?text=No+Image";
+        return `
+        <div class="bg-white rounded-lg shadow hover:shadow-md transition p-2">
+          <img src="${imageUrl}" alt="${villageName}" class="w-full h-48 object-cover rounded-t-lg">
+          <div class="p-4">
+            <h2 class="text-lg font-semibold mb-2">${villageName}</h2>
+            <p class="text-sm text-gray-600 mb-2">${descriptionText}</p>
+            <p class="text-green-700 font-bold mb-2">${priceDisplay}</p>
+            <a href="booking.html?id=${listing.id}" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition block text-center bookBtn">Book Now</a>
+          </div>
+        </div>`;
+      }
+
+      async function fetchAndDisplayListings() {
+        const container = document.getElementById("listingsContainer");
+        container.innerHTML = `<p id="loadingText" class="text-center text-gray-500 col-span-full">Loading listings...</p>`;
+
+        try {
+          const listingsRef = collection(db, "listings");
+          const q = query(listingsRef, orderBy("timestamp", "desc"));
+          const querySnapshot = await getDocs(q);
+          const allListings = [];
+          querySnapshot.forEach((doc) => {
+            allListings.push({ id: doc.id, ...doc.data() });
+          });
+
+          container.innerHTML = ""; // Clear loading message
+
+          let listingsToDisplay = [];
+          if (searchQuery) {
+            // Filter if there's a search query
+            listingsToDisplay = allListings.filter((listing) => {
+              const village = String(listing.village || "").toLowerCase();
+              const description = String(listing.description || "").toLowerCase();
+              return (
+                village.includes(searchQuery) || description.includes(searchQuery)
+              );
+            });
+          } else {
+            // If no search query, display all available listings
+            listingsToDisplay = allListings;
+          }
+
+          if (listingsToDisplay.length > 0) {
+            listingsToDisplay.forEach((listing) => {
+              container.innerHTML += createListingCard(listing);
+            });
+          } else {
+            // Differentiate between no listings at all, and no listings for a specific search
+            if (searchQuery) {
+              container.innerHTML = `<p id="noListingsText" class="text-center text-gray-700 col-span-full">${t.noListingsText}</p>`;
+            } else {
+              container.innerHTML = `<p id="noListingsText" class="text-center text-gray-700 col-span-full">${t.noListingsAvailable}</p>`;
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching listings:", error);
+          container.innerHTML = `<p class="text-center text-red-600 col-span-full">Failed to load listings. Please check console for errors.</p>`;
+        }
+      }
+
+      // Translate Logic
+      const translateBtn = document.getElementById("translateBtn");
+      const translateModal = document.getElementById("translateModal");
+      const applyTranslate = document.getElementById("applyTranslate");
+      const cancelTranslate = document.getElementById("cancelTranslate");
+
+      translateBtn.addEventListener("click", () => {
+        translateModal.classList.remove("hidden");
+        translateModal.classList.add("flex");
+      });
+
+      cancelTranslate.addEventListener("click", () => {
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+      });
+
+      applyTranslate.addEventListener("click", () => {
+        const selectedLang = document.querySelector(
+          'input[name="language"]:checked'
+        ).value;
+        localStorage.setItem("rootsstayLang", selectedLang); // Save language preference
+        translateContent(selectedLang);
+        translateModal.classList.add("hidden");
+        translateModal.classList.remove("flex");
+        // Re-fetch and display listings to apply new language messages
+        fetchAndDisplayListings(); 
+      });
+
+      let t; // Declare t globally or ensure it's accessible within fetchAndDisplayListings
+
+      function translateContent(lang) {
+        const translations = {
+          en: {
+            headerTitle: "RootsStay Listings",
+            footerText: "© 2025 RootsStay",
+            loadingText: "Loading listings...",
+            noListingsText: "No listings found for your search.",
+            noListingsAvailable: "No listings available.",
+            bookNow: "Book Now",
+          },
+          hi: {
+            headerTitle: "रूट्सस्टे सूचियाँ",
+            footerText: "© 2025 रूट्सस्टे",
+            loadingText: "सूचियाँ लोड हो रही हैं...",
+            noListingsText: "आपकी खोज के लिए कोई सूची नहीं मिली।",
+            noListingsAvailable: "कोई सूची उपलब्ध नहीं है।",
+            bookNow: "अभी बुक करें",
+          },
+          kan: {
+            headerTitle: "ರೂಟ್‌ಸ್ಟೇ ಪಟ್ಟಿ",
+            footerText: "© 2025 ರೂಟ್‌ಸ್ಟೇ",
+            loadingText: "ಪಟ್ಟಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+            noListingsText: "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಪಟ್ಟಿಗಳು ದೊರೆತಿಲ್ಲ.",
+            noListingsAvailable: "ಯಾವುದೇ ಪಟ್ಟಿಗಳು ಲಭ್ಯವಿಲ್ಲ.",
+            bookNow: "ಈಗಲೇ ಬುಕ್ ಮಾಡಿ",
+          },
+        };
+
+        t = translations[lang]; // Assign to the global/accessible t
+        document.getElementById("headerTitle").innerText = t.headerTitle;
+        document.getElementById("footerText").innerText = t.footerText;
+
+        // The loadingTextElem and noListingsTextElem will be updated dynamically by fetchAndDisplayListings
+        // when it runs after translation application.
+
+        // Update all "Book Now" buttons/links
+        document.querySelectorAll(".bookBtn").forEach((btn) => {
+          btn.innerText = t.bookNow;
+        });
+      }
+
+      // Apply translation on page load (if a language preference is saved)
+      document.addEventListener("DOMContentLoaded", () => {
+        const savedLang = localStorage.getItem("rootsstayLang");
+        if (savedLang) {
+          const radio = document.querySelector(
+            `input[name="language"][value="${savedLang}"]`
+          );
+          if (radio) {
+            radio.checked = true;
+          }
+          translateContent(savedLang);
+        } else {
+          translateContent("en"); // Default to English if no language saved
+        }
+        fetchAndDisplayListings(); // Call after translation is initialized
+      });
+    </script>
+  </body>
+</html>
